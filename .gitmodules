@@ -1,0 +1,12 @@
+[submodule "qgit"]
+	path = qgit
+	url = https://github.com/GriffinCanCode/QGit
+[submodule "generate"]
+	path = generate
+	url = https://github.com/GriffinCanCode/Generator.git
+[submodule "desktidy"]
+	path = desktidy
+	url = https://github.com/GriffinCanCode/Desktidy.git
+[submodule "FaxMachine"]
+	path = FaxMachine
+	url = https://github.com/GriffinCanCode/FaxMachine.git
