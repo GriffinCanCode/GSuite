@@ -141,7 +141,16 @@ services/backanim/resources/generated/
 *.svg
 *.ico
 
+# Rust build artifacts
+target/
+Cargo.lock
+
 # Large binary files
 *.dmg
 *.pkg
 *.app/
+
+# Service logs and generated content
+services/backanim/logs/
+services/backanim/resources/
+services/ange-gardien/target/

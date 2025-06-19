@@ -1,1 +1,0 @@
-DefaultableColumnInsertValue<ColumnInsertValue<system_states::columns::timestamp, &DateTime<Utc>>>
