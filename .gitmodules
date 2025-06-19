@@ -10,3 +10,6 @@
 [submodule "FaxMachine"]
 	path = FaxMachine
 	url = https://github.com/GriffinCanCode/FaxMachine.git
+[submodule "exporters"]
+	path = exporters
+	url = https://github.com/GriffinCanCode/Exporters.git
