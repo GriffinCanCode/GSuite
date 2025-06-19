@@ -1,0 +1,11 @@
+# MCP Server SDK
+mcp
+
+# Library for Chrome Debugging Protocol communication
+websockets
+
+# ASGI server to run FastMCP (needed if not using 'mcp run')
+# uvicorn[standard]
+
+# Other potential dependencies
+# ... 

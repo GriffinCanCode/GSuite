@@ -13,3 +13,6 @@
 [submodule "exporters"]
 	path = exporters
 	url = https://github.com/GriffinCanCode/Exporters.git
+[submodule "qvenv"]
+	path = qvenv
+	url = https://github.com/GriffinCanCode/QVenv.git

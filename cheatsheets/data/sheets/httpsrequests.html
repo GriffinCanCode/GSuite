@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Guide: HTTP Request Methods Explained</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apply Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple SVG icon styling */
+        .method-icon {
+            width: 3rem; /* 48px */
+            height: 3rem; /* 48px */
+            margin-bottom: 0.5rem; /* 8px */
+        }
+        /* Style for code blocks */
+        code {
+            font-family: monospace;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #1f2937; /* Tailwind gray-800 */
+            display: inline-block; /* Ensure block formatting for multiline */
+            white-space: pre-wrap; /* Allow wrapping */
+            word-break: break-all; /* Break long words */
+        }
+        /* Style for inline code within text */
+        p code, li code, td code, span code {
+             background-color: #e5e7eb; /* Lighter gray for inline */
+             padding: 0.1em 0.3em;
+             font-size: 0.85em;
+             vertical-align: baseline;
+        }
+        /* Add some spacing for code examples */
+        .code-example p + code {
+            margin-top: 0.5rem;
+        }
+        .code-example code + code {
+            margin-top: 0.25rem;
+        }
+        /* Styling for status code examples */
+        .status-code {
+            font-weight: 600;
+            padding: 0.1em 0.3em;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .status-2xx { background-color: #dcfce7; color: #166534; } /* Green */
+        .status-3xx { background-color: #e0f2fe; color: #075985; } /* Blue */
+        .status-4xx { background-color: #ffedd5; color: #9a3412; } /* Orange */
+        .status-5xx { background-color: #fee2e2; color: #991b1b; } /* Red */
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-indigo-800 mb-8 border-b-2 border-indigo-600 pb-3">
+            Enhanced Guide: HTTP Request Methods
+        </h1>
+
+        <p class="text-lg text-gray-700 mb-8 text-center">
+            Understand the fundamental actions of the web. HTTP methods define how clients (like your browser) interact with servers to manage resources.
+        </p>
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            Core HTTP Methods Explained
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                <svg class="method-icon text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                <h3 class="text-xl font-semibold text-blue-700 mb-2">GET</h3>
+                <p class="text-gray-600"><strong>Purpose:</strong> Retrieve data from a resource.</p>
+                <p class="text-gray-600"><strong>Analogy:</strong> Asking for a specific page in a book.</p>
+                <p class="text-gray-600"><strong>Key Features:</strong> Safe, Idempotent, cacheable, data in URL, visible in history.</p>
+                <p class="text-gray-600"><strong>Use Case:</strong> Fetching a user profile, reading blog posts.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                <svg class="method-icon text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                <h3 class="text-xl font-semibold text-green-700 mb-2">POST</h3>
+                <p class="text-gray-600"><strong>Purpose:</strong> Submit data to create or process a resource.</p>
+                <p class="text-gray-600"><strong>Analogy:</strong> Sending a letter or submitting a form.</p>
+                <p class="text-gray-600"><strong>Key Features:</strong> Not safe, not idempotent, not typically cached, data in body.</p>
+                <p class="text-gray-600"><strong>Use Case:</strong> Creating a new user, submitting contact forms, triggering actions.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                <svg class="method-icon text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25" />
+                </svg>
+                <h3 class="text-xl font-semibold text-purple-700 mb-2">PUT</h3>
+                <p class="text-gray-600"><strong>Purpose:</strong> Replace an existing resource entirely (or create if it doesn't exist).</p>
+                <p class="text-gray-600"><strong>Analogy:</strong> Replacing an entire page in a binder with a new one.</p>
+                <p class="text-gray-600"><strong>Key Features:</strong> Not safe, Idempotent, data in body.</p>
+                <p class="text-gray-600"><strong>Use Case:</strong> Updating a user's complete profile information.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                <svg class="method-icon text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                </svg>
+                <h3 class="text-xl font-semibold text-orange-700 mb-2">PATCH</h3>
+                <p class="text-gray-600"><strong>Purpose:</strong> Apply partial modifications to a resource.</p>
+                <p class="text-gray-600"><strong>Analogy:</strong> Editing a specific sentence on a page.</p>
+                <p class="text-gray-600"><strong>Key Features:</strong> Not safe, not generally idempotent, data in body.</p>
+                <p class="text-gray-600"><strong>Use Case:</strong> Updating only a user's email address or status.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                 <svg class="method-icon text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+                <h3 class="text-xl font-semibold text-red-700 mb-2">DELETE</h3>
+                <p class="text-gray-600"><strong>Purpose:</strong> Remove a specified resource.</p>
+                <p class="text-gray-600"><strong>Analogy:</strong> Throwing away or shredding a document.</p>
+                <p class="text-gray-600"><strong>Key Features:</strong> Not safe, Idempotent.</p>
+                <p class="text-gray-600"><strong>Use Case:</strong> Deleting a user account or a specific post.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300 md:col-span-2 lg:col-span-1">
+                 <svg class="method-icon text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">Other Methods</h3>
+                <ul class="list-disc list-inside text-gray-600 space-y-1">
+                   <li><strong>HEAD:</strong> Like GET, but only fetches headers (metadata). Safe, Idempotent.</li>
+                   <li><strong>OPTIONS:</strong> Asks the server about available communication options (like allowed methods). Safe, Idempotent.</li>
+                   <li><strong>TRACE:</strong> Diagnostic tool to see the request path. Generally considered safe and idempotent, but often disabled for security reasons.</li>
+                   <li><strong>CONNECT:</strong> Establishes a network tunnel (often for HTTPS). Not typically used directly in web apps.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            Understanding Idempotency and Safety
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">Safe Methods</h3>
+                <p class="text-gray-700">Safe methods are those that are not intended to change the state of the server. They are essentially read-only operations.</p>
+                <p class="text-gray-700 mt-2">Examples: <code>GET</code>, <code>HEAD</code>, <code>OPTIONS</code>.</p>
+                <p class="text-gray-600 text-sm mt-2">Note: While servers *shouldn't* change state for safe methods, they technically *can*. Safety is about the intended semantics.</p>
+            </div>
+            <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                <h3 class="text-lg font-semibold text-purple-800 mb-2">Idempotent Methods</h3>
+                <p class="text-gray-700">Idempotent methods mean that making the same request multiple times will produce the same result (and server state) as making it once. This doesn't mean the state never changes, just that repeating the *exact same* request doesn't cause additional changes after the first time.</p>
+                <p class="text-gray-700 mt-2">Examples: <code>GET</code>, <code>PUT</code>, <code>DELETE</code>, <code>HEAD</code>, <code>OPTIONS</code>.</p>
+                <p class="text-gray-600 text-sm mt-2">Why it matters: If a client sends a <code>PUT</code> request and the connection drops, it can safely resend the request without worrying about accidentally performing the update twice.</p>
+            </div>
+        </div>
+        <p class="text-gray-700 mb-10"><code>POST</code> is neither safe nor idempotent (sending the same form twice might create two separate items). <code>PATCH</code> is not safe and typically not idempotent (applying the same patch twice might yield a different result than applying it once, depending on the patch logic).</p>
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            GET vs POST: Key Differences [cite: 5]
+        </h2>
+        <div class="overflow-x-auto mb-10">
+            <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm">
+                <thead class="bg-indigo-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-indigo-800 uppercase tracking-wider border-b border-gray-300">Feature</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-indigo-800 uppercase tracking-wider border-b border-gray-300">GET</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-indigo-800 uppercase tracking-wider border-b border-gray-300">POST</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <tr><td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Purpose</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Retrieve data [cite: 5]</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Submit data (create/process) [cite: 5]</td></tr>
+                    <tr><td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Data Location</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">URL query string [cite: 5]</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Request body [cite: 5]</td></tr>
+                    <tr><td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Data Length</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Limited by URL length [cite: 5]</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">No practical limit [cite: 5]</td></tr>
+                    <tr><td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Caching</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Can be cached [cite: 5]</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Not usually cached [cite: 5]</td></tr>
+                    <tr><td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Bookmarking/History</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Yes (visible in URL) [cite: 5]</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">No (not visible in URL) [cite: 5]</td></tr>
+                    <tr><td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Safety</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Safe</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Not Safe</td></tr>
+                    <tr><td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Idempotency</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Idempotent</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Not Idempotent</td></tr>
+                    <tr><td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Security (Sensitive Data)</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">Less secure (data in URL/logs)</td><td class="px-6 py-4 whitespace-nowrap text-gray-600">More secure (data in body, use HTTPS)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            Basic HTTP Message Structure
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">HTTP Request</h3>
+                <p class="text-gray-600 mb-4">A client sends a request to the server, typically consisting of:</p>
+                <ul class="list-disc list-inside text-gray-600 space-y-1 mb-4">
+                    <li><strong>Start Line:</strong> Method (e.g., <code>GET</code>), Request Target (URI, e.g., <code>/users/123</code>), HTTP Version (e.g., <code>HTTP/1.1</code>).</li>
+                    <li><strong>Headers:</strong> Key-value pairs providing metadata (e.g., <code>Host: example.com</code>, <code>Accept: application/json</code>).</li>
+                    <li><strong>Blank Line:</strong> Separates headers from the body.</li>
+                    <li><strong>Body (Optional):</strong> The actual data being sent (used with <code>POST</code>, <code>PUT</code>, <code>PATCH</code>).</li>
+                </ul>
+                <code>GET /index.html HTTP/1.1<br>Host: www.example.com<br>User-Agent: MyBrowser/1.0<br>Accept: text/html<br><br></code>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">HTTP Response</h3>
+                <p class="text-gray-600 mb-4">The server sends back a response, typically consisting of:</p>
+                 <ul class="list-disc list-inside text-gray-600 space-y-1 mb-4">
+                    <li><strong>Status Line:</strong> HTTP Version, Status Code (e.g., <code>200</code>), Status Message (e.g., <code>OK</code>).</li>
+                    <li><strong>Headers:</strong> Key-value pairs providing metadata about the response (e.g., <code>Content-Type: text/html</code>, <code>Content-Length: 1234</code>).</li>
+                    <li><strong>Blank Line:</strong> Separates headers from the body.</li>
+                    <li><strong>Body (Optional):</strong> The requested resource or status information (e.g., HTML content, JSON data).</li>
+                </ul>
+                <code>HTTP/1.1 200 OK<br>Date: Thu, 17 Apr 2025 23:25:00 GMT<br>Content-Type: text/html<br>Content-Length: 1270<br><br>&lt;!DOCTYPE html&gt;<br>&lt;html&gt;...&lt;/html&gt;</code>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            Understanding HTTP Status Codes
+        </h2>
+        <p class="text-gray-700 mb-6">Status codes indicate the result of the HTTP request. They are grouped into categories:</p>
+        <div class="space-y-4 mb-10">
+            <p><strong class="text-gray-800">1xx (Informational):</strong> Request received, continuing process (rarely seen by end-users).</p>
+            <p><strong class="text-green-700">2xx (Success):</strong> The action was successfully received, understood, and accepted.</p>
+            <ul class="list-disc list-inside ml-4 text-gray-600 space-y-1">
+                <li><span class="status-code status-2xx">200 OK:</span> Standard success response for GET, PUT, PATCH, DELETE.</li>
+                <li><span class="status-code status-2xx">201 Created:</span> Request succeeded, and a new resource was created (often used with POST or PUT).</li>
+                <li><span class="status-code status-2xx">204 No Content:</span> Request succeeded, but there's no content to send back (often used with DELETE).</li>
+            </ul>
+             <p><strong class="text-blue-700">3xx (Redirection):</strong> Further action needs to be taken by the client to complete the request.</p>
+             <ul class="list-disc list-inside ml-4 text-gray-600 space-y-1">
+                <li><span class="status-code status-3xx">301 Moved Permanently:</span> The resource has permanently moved to a new URL.</li>
+                <li><span class="status-code status-3xx">302 Found / 307 Temporary Redirect:</span> The resource is temporarily at a different URL.</li>
+             </ul>
+            <p><strong class="text-orange-700">4xx (Client Error):</strong> The request contains bad syntax or cannot be fulfilled.</p>
+             <ul class="list-disc list-inside ml-4 text-gray-600 space-y-1">
+                <li><span class="status-code status-4xx">400 Bad Request:</span> Server cannot process the request due to client error (e.g., malformed syntax).</li>
+                <li><span class="status-code status-4xx">401 Unauthorized:</span> Authentication is required and has failed or has not yet been provided.</li>
+                <li><span class="status-code status-4xx">403 Forbidden:</span> The client does not have permission to access the resource.</li>
+                <li><span class="status-code status-4xx">404 Not Found:</span> The server cannot find the requested resource.</li>
+             </ul>
+            <p><strong class="text-red-700">5xx (Server Error):</strong> The server failed to fulfill a valid request.</p>
+             <ul class="list-disc list-inside ml-4 text-gray-600 space-y-1">
+                 <li><span class="status-code status-5xx">500 Internal Server Error:</span> A generic error message when an unexpected condition was encountered.</li>
+                 <li><span class="status-code status-5xx">503 Service Unavailable:</span> The server is not ready to handle the request (e.g., down for maintenance or overloaded).</li>
+             </ul>
+        </div>
+
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            Practical Examples [cite: 6]
+        </h2>
+        <div class="space-y-6 mb-10 code-example bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div><p><strong>GET Example:</strong> Retrieve details for user 123. (Expect <span class="status-code status-2xx">200 OK</span> or <span class="status-code status-4xx">404 Not Found</span>)</p><code>GET /api/users/123 HTTP/1.1<br>Host: example.com</code></div>
+             <div><p><strong>POST Example:</strong> Register a new user. (Expect <span class="status-code status-2xx">201 Created</span> on success)</p><code>POST /api/signup HTTP/1.1<br>Host: example.com<br>Content-Type: application/json<br><br>{ "username": "bro", "email": "bro@example.com" }</code></div>
+             <div><p><strong>PUT Example:</strong> Replace all details for user 123. (Expect <span class="status-code status-2xx">200 OK</span> or <span class="status-code status-2xx">201 Created</span> if new)</p><code>PUT /api/users/123 HTTP/1.1<br>Host: example.com<br>Content-Type: application/json<br><br>{ "name": "Griffin", "age": 20, "email": "griffin@example.com" }</code><p class="text-sm text-gray-500 mt-1">Note: PUT replaces the *entire* resource.</p></div>
+             <div><p><strong>PATCH Example:</strong> Update only the nickname for user 123. (Expect <span class="status-code status-2xx">200 OK</span> on success)</p><code>PATCH /api/users/123 HTTP/1.1<br>Host: example.com<br>Content-Type: application/json<br><br>{ "nickname": "homie" }</code><p class="text-sm text-gray-500 mt-1">Note: PATCH applies a *partial* update.</p></div>
+             <div><p><strong>DELETE Example:</strong> Remove user 123. (Expect <span class="status-code status-2xx">204 No Content</span> or <span class="status-code status-2xx">200 OK</span> on success)</p><code>DELETE /api/users/123 HTTP/1.1<br>Host: example.com</code></div>
+             <div><p><strong>OPTIONS Example:</strong> Check allowed methods. (Expect <span class="status-code status-2xx">200 OK</span> with <code>Allow</code> header)</p><code>OPTIONS /api/users/123 HTTP/1.1<br>Host: example.com</code><p class="text-sm text-gray-500 mt-1">Response Header Might Include: <code>Allow: GET, PUT, PATCH, DELETE, HEAD, OPTIONS</code></p></div>
+             <div><p><strong>HEAD Example:</strong> Get metadata. (Expect <span class="status-code status-2xx">200 OK</span> with headers, no body)</p><code>HEAD /api/users/123 HTTP/1.1<br>Host: example.com</code><p class="text-sm text-gray-500 mt-1">Server responds with headers only.</p></div>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            Choosing the Right Method (CRUD Mapping)
+        </h2>
+        <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200 mb-10">
+             <ul class="list-none space-y-3">
+                <li class="flex items-start"><span class="font-bold text-blue-700 w-32">Read Data:</span> <span class="text-gray-700">Use <code>GET</code></span></li>
+                <li class="flex items-start"><span class="font-bold text-green-700 w-32">Create Data:</span> <span class="text-gray-700">Use <code>POST</code></span></li>
+                <li class="flex items-start"><span class="font-bold text-purple-700 w-32">Replace Data:</span> <span class="text-gray-700">Use <code>PUT</code> (Full Update)</span></li>
+                <li class="flex items-start"><span class="font-bold text-orange-700 w-32">Update Data:</span> <span class="text-gray-700">Use <code>PATCH</code> (Partial Update)</span></li>
+                <li class="flex items-start"><span class="font-bold text-red-700 w-32">Delete Data:</span> <span class="text-gray-700">Use <code>DELETE</code></span></li>
+            </ul>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            Relation to RESTful APIs
+        </h2>
+        <p class="text-gray-700 mb-4">HTTP methods are fundamental to <strong class="font-semibold">REST (Representational State Transfer)</strong>, an architectural style for designing networked applications, particularly web services (APIs).</p>
+        <p class="text-gray-700 mb-4">RESTful APIs leverage standard HTTP methods to perform CRUD (Create, Read, Update, Delete) operations on resources identified by URIs:</p>
+        <ul class="list-disc list-inside text-gray-600 space-y-1 mb-6">
+            <li><code>GET /users</code>: Retrieve a list of users.</li>
+            <li><code>GET /users/123</code>: Retrieve a specific user.</li>
+            <li><code>POST /users</code>: Create a new user (data in request body).</li>
+            <li><code>PUT /users/123</code>: Replace/update user 123 entirely (data in request body).</li>
+            <li><code>PATCH /users/123</code>: Partially update user 123 (data in request body).</li>
+            <li><code>DELETE /users/123</code>: Delete user 123.</li>
+        </ul>
+        <p class="text-gray-700 mb-10">Key REST principles include statelessness (each request contains all info needed), client-server separation, cacheability, and using standard methods and status codes.</p>
+
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            Overview of API Testing Types [cite: 7-10]
+        </h2>
+        <p class="text-gray-700 mb-6">Testing ensures your API works correctly, securely, and efficiently. Common types include:</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center space-x-3"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-teal-600"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" /></svg><div><h4 class="font-semibold text-gray-800">Unit Tests</h4><p class="text-sm text-gray-600">Test individual functions/components in isolation. [cite: 7]</p></div></div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center space-x-3"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-teal-600"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg><div><h4 class="font-semibold text-gray-800">Integration Tests</h4><p class="text-sm text-gray-600">Verify interactions between different components (e.g., API + DB). [cite: 8]</p></div></div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center space-x-3"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-teal-600"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg><div><h4 class="font-semibold text-gray-800">Functional Tests</h4><p class="text-sm text-gray-600">Validate API output against requirements (end-to-end). [cite: 8]</p></div></div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center space-x-3"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-teal-600"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 11.667 0l3.181-3.183m-4.991-2.696v4.992m0 0h4.992m-4.993 0l-3.181-3.183a8.25 8.25 0 0 1-11.667 0l-3.181 3.183" /></svg><div><h4 class="font-semibold text-gray-800">Regression Tests</h4><p class="text-sm text-gray-600">Ensure new changes don't break existing functionality. [cite: 9]</p></div></div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center space-x-3"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-teal-600"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z" /></svg><div><h4 class="font-semibold text-gray-800">Security Tests</h4><p class="text-sm text-gray-600">Identify vulnerabilities (injection, auth issues, etc.). [cite: 9]</p></div></div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center space-x-3"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-teal-600"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" /></svg><div><h4 class="font-semibold text-gray-800">Load Tests</h4><p class="text-sm text-gray-600">Measure performance and stability under load. [cite: 9]</p></div></div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex items-center space-x-3"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-teal-600"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg><div><h4 class="font-semibold text-gray-800">Contract Tests</h4><p class="text-sm text-gray-600">Ensure API adheres to its defined contract (e.g., OpenAPI spec). [cite: 10]</p></div></div>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-indigo-700 mb-6 border-b border-gray-300 pb-2">
+            A Note on Security: HTTPS
+        </h2>
+        <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mb-10 flex items-start space-x-4">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-yellow-600 flex-shrink-0 mt-1">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+             </svg>
+             <div>
+                <h3 class="text-lg font-semibold text-yellow-800 mb-2">Always Use HTTPS</h3>
+                <p class="text-gray-700">While this guide explains HTTP methods, real-world applications should <strong class="font-semibold">always use HTTPS (HTTP Secure)</strong>. HTTPS encrypts the communication between the client and server using TLS/SSL, protecting data (like passwords, personal information, and request bodies) from eavesdropping and tampering.</p>
+                <p class="text-gray-700 mt-2">Using plain HTTP sends data in clear text, which is insecure.</p>
+             </div>
+        </div>
+
+
+        <footer class="text-center text-sm text-gray-500 mt-12 pt-4 border-t border-gray-200">
+            Understanding HTTP methods, status codes, and related concepts is key to effective web development and API design.
+        </footer>
+
+    </div>
+
+</body>
+</html>

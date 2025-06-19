@@ -1,0 +1,325 @@
+#!/usr/bin/env python3
+
+import os
+import re
+import json
+import math
+import hashlib
+import secrets
+from datetime import datetime
+from rich.console import Console
+from rich.progress import Progress
+from rich.panel import Panel
+from rich.tree import Tree
+from pathlib import Path
+
+# Import magic with proper error handling
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+    print("Warning: python-magic not available. File type detection will be limited.")
+
+try:
+    import yara
+    YARA_AVAILABLE = True
+except ImportError:
+    YARA_AVAILABLE = False
+    print("Warning: yara-python not available. YARA rules will be disabled.")
+
+class SecurityScanner:
+    def __init__(self):
+        self.console = Console()
+        self.findings = []
+        self.setup_patterns()
+        self.setup_logs_directory()
+        if YARA_AVAILABLE:
+            self.setup_yara_rules()
+        
+    def setup_patterns(self):
+        self.patterns = {
+            'api_key': [
+                r'(?i)api[_-]key["\']\s*[:=]\s*["\']([\w\-]+)["\']',
+                r'(?i)api[_-]secret["\']\s*[:=]\s*["\']([\w\-]+)["\']',
+                r'(?i)access[_-]key["\']\s*[:=]\s*["\']([\w\-]+)["\']',
+                r'(?i)aws[_-]key["\']\s*[:=]\s*["\']([\w\-]+)["\']',
+                r'(?i)password["\']\s*[:=]\s*["\']([\w\-]+)["\']',
+                r'(?i)secret["\']\s*[:=]\s*["\']([\w\-]+)["\']',
+                r'(?i)token["\']\s*[:=]\s*["\']([\w\-]+)["\']'
+            ],
+            'private_key': [
+                r'-----BEGIN (?:RSA )?PRIVATE KEY-----',
+                r'-----BEGIN OPENSSH PRIVATE KEY-----',
+                r'-----BEGIN PGP PRIVATE KEY BLOCK-----'
+            ],
+            'connection_strings': [
+                r'(?i)(?:jdbc|odbc):[^;]+(?:password|pwd)=([^;]+)',
+                r'(?i)mongodb(?:\+srv)?://[^:]+:([^@]+)@',
+                r'(?i)redis://[^:]+:([^@]+)@'
+            ],
+            'certificates': [
+                r'-----BEGIN CERTIFICATE-----'
+            ],
+            'env_files': [
+                r'(?i)\.env$',
+                r'(?i)\.env\.',
+                r'(?i)\.properties$'
+            ],
+            'config_files': [
+                r'(?i)config\.(json|yaml|yml|xml|ini)$',
+                r'(?i)settings\.(json|yaml|yml|xml|ini)$'
+            ],
+            'high_entropy_strings': [
+                r'[A-Za-z0-9+/]{40,}={0,2}'  # Base64
+            ]
+        }
+        
+    def setup_yara_rules(self):
+        self.yara_rules = """
+rule DetectSecrets {
+    strings:
+        $aws_key = "AKIA[0-9A-Z]{16}"
+        $github_token = "gh[ps]_[0-9a-zA-Z]{36}"
+        $google_api = /(AIza|ya29)[0-9A-Za-z\-_]{8,}/
+        $jwt = "eyJ[A-Za-z0-9\\-_=]+\\.[A-Za-z0-9\\-_=]+\\.?[A-Za-z0-9\\-_.+/=]*"
+        $ssh_key = "ssh-rsa[ \\t]+AAAA[0-9A-Za-z+/]+=*"
+        $private_key = /-----BEGIN[ \\t]+(RSA|OPENSSH|DSA|EC|PGP)?[ \\t]+PRIVATE[ \\t]+KEY[ \\t]+BLOCK-----/
+        $api_key = /(api[_-]?key|api[_-]?secret|access[_-]?key|auth[_-]?token)[ \\t]*[:=][ \\t]*['\"][0-9a-zA-Z\\-_.]{16,}['\"]/ nocase
+        $password = /(password|passwd|pwd)[ \\t]*[:=][ \\t]*['\"][^'\"]{8,}['\"]/ nocase
+        $connection_string = /(mongodb|redis|postgres|mysql|jdbc|odbc):\\/\\/[^:]+:[^@]+@/ nocase
+        $slack_token = "xox[pbar]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32}"
+        $stripe_key = "(sk|pk)_live_[0-9a-zA-Z]{24}"
+        $twilio_key = "SK[0-9a-fA-F]{32}"
+        $authorization_basic = "Authorization: Basic [a-zA-Z0-9+/=]{16,}"
+        $authorization_bearer = "Authorization: Bearer [a-zA-Z0-9\\-._~+/=]*"
+        $pgp_private = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+        $ssh_ec_private = "-----BEGIN EC PRIVATE KEY-----"
+        $ssh_openssh_private = "-----BEGIN OPENSSH PRIVATE KEY-----"
+        $ssh_dsa_private = "-----BEGIN DSA PRIVATE KEY-----"
+        $password_in_url = "://[^/\\s:]+:[^/\\s:]+@"
+        $npm_auth_token = "//registry\\.npmjs\\.org/:_authToken=[0-9a-zA-Z\\-_]{64}"
+        $firebase_key = "AAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140}"
+        $pem_private = "-----BEGIN RSA PRIVATE KEY-----"
+        $generic_secret = /(secret|token|key|passw(or)?d|auth).*[=:][^\\s]/ nocase
+    condition:
+        any of them
+}
+"""
+        try:
+            # Test compile the rules to catch any syntax errors early
+            self.yara_rules_compiled = yara.compile(source=self.yara_rules)
+            self.console.print("[green]YARA rules compiled successfully[/green]")
+        except Exception as e:
+            self.console.print(f"[yellow]Warning: YARA rules compilation failed: {str(e)}[/yellow]")
+            self.yara_rules_compiled = None
+
+    def calculate_entropy(self, string):
+        if not string:
+            return 0
+        entropy = 0
+        for x in range(256):
+            p_x = float(string.count(chr(x)))/len(string)
+            if p_x > 0:
+                entropy += - p_x * math.log2(p_x)
+        return entropy
+        
+    def is_high_entropy(self, string):
+        try:
+            entropy = self.calculate_entropy(string)
+            return entropy > 4.5  # Threshold for high entropy
+        except:
+            return False
+            
+    def scan_file(self, filepath):
+        try:
+            # Skip binary files and files larger than 10MB
+            if not self.is_text_file(filepath):
+                return
+                
+            file_size = os.path.getsize(filepath)
+            if file_size > 10 * 1024 * 1024:  # 10MB
+                self.console.print(f"[yellow]Skipping large file {filepath} ({file_size/1024/1024:.1f}MB)[/yellow]")
+                return
+                
+            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+                
+            findings = []
+            
+            # Check all patterns
+            for category, patterns in self.patterns.items():
+                for pattern in patterns:
+                    try:
+                        matches = re.finditer(pattern, content)
+                        for match in matches:
+                            finding = {
+                                'type': category,
+                                'pattern': pattern,
+                                'match': match.group(0),
+                                'line_number': content.count('\n', 0, match.start()) + 1,
+                                'file': str(filepath)
+                            }
+                            findings.append(finding)
+                    except re.error as e:
+                        self.console.print(f"[yellow]Warning: Invalid regex pattern in {category}: {str(e)}[/yellow]")
+            
+            # Check for high entropy strings
+            words = re.findall(r'\b\w+\b', content)
+            for word in words:
+                if len(word) >= 8 and self.is_high_entropy(word):
+                    finding = {
+                        'type': 'high_entropy',
+                        'match': word,
+                        'line_number': content.count('\n', 0, content.find(word)) + 1,
+                        'file': str(filepath)
+                    }
+                    findings.append(finding)
+            
+            # Apply YARA rules if available and compiled successfully
+            if YARA_AVAILABLE and self.yara_rules_compiled:
+                try:
+                    matches = self.yara_rules_compiled.match(data=content)
+                    for match in matches:
+                        finding = {
+                            'type': 'yara_match',
+                            'rule': match.rule,
+                            'strings': [str(s) for s in match.strings],
+                            'file': str(filepath),
+                            'line_number': content.count('\n', 0, content.find(match.strings[0][2])) + 1 if match.strings else None
+                        }
+                        findings.append(finding)
+                except Exception as e:
+                    self.console.print(f"[yellow]YARA scanning error for {filepath}: {str(e)}[/yellow]")
+                
+            self.findings.extend(findings)
+            
+        except Exception as e:
+            self.console.print(f"[red]Error scanning {filepath}: {str(e)}[/red]")
+            
+    def is_text_file(self, filepath):
+        try:
+            # Convert Path object to string if needed
+            filepath = str(filepath)
+            
+            # Skip certain file extensions known to be binary or irrelevant
+            skip_extensions = {'.pyc', '.pyo', '.so', '.dll', '.dylib', '.exe', '.bin', 
+                             '.jpg', '.png', '.gif', '.pdf', '.zip', '.tar', '.gz'}
+            if any(filepath.endswith(ext) for ext in skip_extensions):
+                return False
+
+            if MAGIC_AVAILABLE:
+                # Use python-magic to detect file type
+                mime = magic.from_file(filepath, mime=True)
+                return (mime and (mime.startswith('text/') or 
+                       mime in ['application/json', 'application/xml', 'application/x-yaml']))
+            else:
+                # Fallback method if magic is not available
+                try:
+                    with open(filepath, 'tr') as f:
+                        f.read(1024)  # Try reading as text
+                    return True
+                except UnicodeDecodeError:
+                    return False
+        except Exception as e:
+            self.console.print(f"[yellow]Warning: Could not determine file type for {filepath}: {str(e)}[/yellow]")
+            return False
+            
+    def scan_directory(self, directory):
+        try:
+            # Convert directory to Path object if it isn't already
+            directory = Path(directory)
+            
+            # Get total files count, excluding virtual environment
+            total_files = sum(1 for f in directory.rglob('*') 
+                            if f.is_file() and '.venv' not in str(f))
+            
+            with Progress() as progress:
+                task = progress.add_task("[cyan]Scanning...", total=total_files)
+                
+                for filepath in directory.rglob('*'):
+                    if filepath.is_file():
+                        # Skip virtual environment files
+                        if '.venv' in str(filepath):
+                            continue
+                            
+                        progress.update(task, description=f"[cyan]Scanning {filepath}...")
+                        self.scan_file(filepath)
+                        progress.advance(task)
+                        
+        except Exception as e:
+            self.console.print(f"[red]Error scanning directory {directory}: {str(e)}[/red]")
+            
+    def setup_logs_directory(self):
+        """Ensure the logs directory exists"""
+        self.logs_dir = Path(__file__).parent / 'logs' / 'security_scanner'
+        self.logs_dir.mkdir(parents=True, exist_ok=True)
+        
+    def generate_report(self):
+        if not self.findings:
+            self.console.print("[green]No security issues found.[/green]")
+            return
+            
+        report_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        report_file = self.logs_dir / f"security_scan_{report_time}.json"
+        
+        # Create tree view of findings
+        tree = Tree("[red]Security Scan Findings")
+        
+        findings_by_type = {}
+        for finding in self.findings:
+            finding_type = finding['type']
+            if finding_type not in findings_by_type:
+                findings_by_type[finding_type] = []
+            findings_by_type[finding_type].append(finding)
+            
+        for finding_type, findings in findings_by_type.items():
+            type_branch = tree.add(f"[yellow]{finding_type} ({len(findings)})")
+            for finding in findings:
+                file_path = finding['file']
+                if 'line_number' in finding:
+                    type_branch.add(f"[red]{file_path}:{finding['line_number']}")
+                else:
+                    type_branch.add(f"[red]{file_path}")
+                    
+        self.console.print(tree)
+        
+        # Save detailed report
+        with open(report_file, 'w') as f:
+            json.dump({
+                'scan_time': report_time,
+                'findings': self.findings
+            }, f, indent=2)
+            
+        self.console.print(f"\n[green]Detailed report saved to: {report_file}[/green]")
+        
+def main():
+    try:
+        scanner = SecurityScanner()
+        scanner.console.print(Panel.fit(
+            "[bold cyan]Advanced Security Vulnerability Scanner[/bold cyan]\n"
+            "[dim]Scanning for sensitive data, secrets, and potential vulnerabilities...[/dim]"
+        ))
+        
+        # Allow custom scan directory via environment variable or default to current directory
+        start_dir = os.getenv('SCAN_DIR', '.')
+        start_dir = os.path.expanduser(start_dir)
+        
+        if not os.path.exists(start_dir):
+            scanner.console.print(f"[red]Error: Directory {start_dir} does not exist[/red]")
+            return 1
+            
+        scanner.console.print(f"[green]Starting scan in: {start_dir}[/green]")
+        scanner.scan_directory(start_dir)
+        scanner.generate_report()
+        return 0
+        
+    except KeyboardInterrupt:
+        scanner.console.print("\n[yellow]Scan interrupted by user[/yellow]")
+        return 130
+    except Exception as e:
+        scanner.console.print(f"[red]Fatal error: {str(e)}[/red]")
+        return 1
+
+if __name__ == "__main__":
+    exit(main())

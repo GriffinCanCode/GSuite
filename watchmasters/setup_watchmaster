@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Create virtual environment and install WatchMaster
+VENV_DIR="/usr/local/lib/watchmaster"
+BIN_DIR="/usr/local/bin"
+
+# Color definitions
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo -e "${YELLOW}Setting up WatchMaster environment...${NC}"
+
+# Check for sudo
+if [ "$EUID" -ne 0 ]; then 
+    echo -e "${RED}Please run with sudo${NC}"
+    exit 1
+fi
+
+# Create virtual environment directory
+echo -e "${YELLOW}Creating virtual environment...${NC}"
+python3 -m venv "$VENV_DIR"
+
+# Activate virtual environment and install dependencies
+source "$VENV_DIR/bin/activate"
+echo -e "${YELLOW}Installing required packages...${NC}"
+pip install --upgrade pip
+pip install rich psutil anthropic python-dotenv
+
+# Create logs directory
+echo -e "${YELLOW}Creating logs directory...${NC}"
+mkdir -p "$(pwd)/logs/security_scanner"
+chmod 755 "$(pwd)/logs"
+chmod 755 "$(pwd)/logs/security_scanner"
+
+# Create symlinks to the current directory's scripts
+echo -e "${YELLOW}Creating symlinks...${NC}"
+chmod +x watchmaster watchmaster_monitor.py
+ln -sf "$(pwd)/watchmaster" "$BIN_DIR/watchmaster"
+ln -sf "$(pwd)/watchmaster_monitor.py" "$VENV_DIR/bin/watchmaster_monitor.py"
+
+# Create wrapper script for watchmaster
+cat > "$BIN_DIR/watchmaster" << 'EOF'
+#!/bin/bash
+source /usr/local/lib/watchmaster/bin/activate
+exec watchmaster "$@"
+EOF
+
+chmod +x "$BIN_DIR/watchmaster"
+
+echo -e "${GREEN}WatchMaster installation complete!${NC}"
+echo -e "${YELLOW}You can now run 'watchmaster' from anywhere.${NC}" 

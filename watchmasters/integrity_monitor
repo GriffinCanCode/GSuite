@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+import time
+from datetime import datetime
+from rich.console import Console
+from rich.layout import Layout
+from rich.panel import Panel
+from rich.table import Table
+from rich import box
+from pathlib import Path
+
+class IntegrityMonitor:
+    def __init__(self):
+        self.console = Console()
+        self.layout = Layout()
+        self.has_root = os.geteuid() == 0
+        self.log_dir = Path.home() / "Library/Logs/SystemIntegrity"
+        self.log_dir.mkdir(parents=True, exist_ok=True)
+        
+        if not self.has_root:
+            self.console.print("[yellow]Warning: Some features require root privileges[/yellow]")
+    
+    def run_command(self, command):
+        """Run a shell command and return its output."""
+        try:
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            return result.stdout.strip()
+        except Exception as e:
+            return f"Error: {str(e)}"
+    
+    def check_system_integrity(self):
+        """Check system integrity protection and security status."""
+        sip_status = self.run_command("csrutil status")
+        xprotect_status = self.run_command("system_profiler SPSecurityDataType | grep -A 5 XProtect")
+        fs_status = self.run_command("tmutil listlocalsnapshots /")
+        
+        table = Table(box=box.ROUNDED, title="System Integrity Status")
+        table.add_column("Check", style="cyan")
+        table.add_column("Status", style="green")
+        
+        table.add_row("System Integrity Protection", sip_status)
+        table.add_row("XProtect Status", xprotect_status)
+        table.add_row("Time Machine Snapshots", fs_status)
+        
+        return table
+    
+    def check_file_integrity(self):
+        """Check integrity of critical system files."""
+        critical_paths = [
+            "/System/Library/CoreServices",
+            "/usr/bin",
+            "/usr/sbin",
+            "/Library/LaunchDaemons",
+            "/Library/LaunchAgents"
+        ]
+        
+        table = Table(box=box.ROUNDED, title="File Integrity Status")
+        table.add_column("Path", style="cyan")
+        table.add_column("Status", style="green")
+        table.add_column("Issues", style="yellow")
+        
+        for path in critical_paths:
+            if os.path.exists(path):
+                # Check permissions and ownership
+                perms = self.run_command(f"ls -ld {path}")
+                # Check for unauthorized modifications
+                mods = self.run_command(f"find {path} -mtime -1 -type f 2>/dev/null")
+                status = "✅ OK" if not mods else "⚠️ Recent changes"
+                table.add_row(path, status, f"Permissions: {perms}")
+        
+        return table
+    
+    def check_kernel_integrity(self):
+        """Check kernel extension integrity."""
+        kexts = self.run_command("kextstat | grep -v com.apple")
+        
+        table = Table(box=box.ROUNDED, title="Kernel Integrity")
+        table.add_column("Extension", style="cyan")
+        table.add_column("Status", style="yellow")
+        
+        if kexts:
+            for line in kexts.split('\n'):
+                if line.strip():
+                    table.add_row(line, "⚠️ Non-Apple Kext")
+        else:
+            table.add_row("No third-party kernel extensions found", "✅ Clean")
+        
+        return table
+    
+    def check_launch_agents(self):
+        """Check launch agents and daemons."""
+        launch_locations = [
+            "/Library/LaunchAgents",
+            "/Library/LaunchDaemons",
+            "~/Library/LaunchAgents"
+        ]
+        
+        table = Table(box=box.ROUNDED, title="Launch Agents Analysis")
+        table.add_column("Location", style="cyan")
+        table.add_column("Agent", style="green")
+        table.add_column("Status", style="yellow")
+        
+        for location in launch_locations:
+            path = os.path.expanduser(location)
+            if os.path.exists(path):
+                for item in os.listdir(path):
+                    if item.endswith('.plist'):
+                        content = self.run_command(f"plutil -p {os.path.join(path, item)}")
+                        status = "✅ Valid" if "ERROR" not in content else "⚠️ Invalid"
+                        table.add_row(location, item, status)
+        
+        return table
+    
+    def check_network_integrity(self):
+        """Check network configuration integrity."""
+        dns_config = self.run_command("scutil --dns")
+        proxy_config = self.run_command("scutil --proxy")
+        hosts_file = self.run_command("cat /etc/hosts")
+        
+        table = Table(box=box.ROUNDED, title="Network Configuration Integrity")
+        table.add_column("Check", style="cyan")
+        table.add_column("Status", style="green")
+        
+        table.add_row("DNS Configuration", "✅ OK" if dns_config else "⚠️ Issues found")
+        table.add_row("Proxy Settings", "✅ OK" if proxy_config else "⚠️ Issues found")
+        table.add_row("Hosts File", "✅ OK" if hosts_file else "⚠️ Issues found")
+        
+        return table
+    
+    def update_display(self):
+        """Update the display with all integrity checks."""
+        self.layout.split(
+            Layout(name="header", size=3),
+            Layout(name="main"),
+            Layout(name="footer", size=3)
+        )
+        
+        self.layout["main"].split_row(
+            Layout(name="left"),
+            Layout(name="right")
+        )
+        
+        self.layout["left"].split(
+            Layout(name="system"),
+            Layout(name="kernel")
+        )
+        
+        self.layout["right"].split(
+            Layout(name="files"),
+            Layout(name="network")
+        )
+        
+        self.layout["header"].update(Panel(
+            "System Integrity Monitor",
+            style="bold blue",
+            border_style="blue"
+        ))
+        
+        self.layout["system"].update(self.check_system_integrity())
+        self.layout["kernel"].update(self.check_kernel_integrity())
+        self.layout["files"].update(self.check_file_integrity())
+        self.layout["network"].update(self.check_network_integrity())
+        
+        self.layout["footer"].update(Panel(
+            "Press Ctrl+C to exit",
+            style="dim",
+            border_style="dim"
+        ))
+        
+        return self.layout
+    
+    def run(self):
+        """Main monitoring loop."""
+        try:
+            while True:
+                layout = self.update_display()
+                self.console.clear()
+                self.console.print(layout)
+                
+                # Log the current state
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                log_file = self.log_dir / f"integrity_check_{timestamp}.log"
+                with open(log_file, 'w') as f:
+                    f.write(f"System Integrity Check - {timestamp}\n")
+                    f.write("=" * 50 + "\n")
+                    f.write(self.run_command("csrutil status") + "\n")
+                    f.write(self.run_command("tmutil listlocalsnapshots /") + "\n")
+                    f.write(self.run_command("kextstat") + "\n")
+                
+                time.sleep(60)  # Update every minute
+                
+        except KeyboardInterrupt:
+            self.console.print("\n[yellow]Monitoring stopped by user[/yellow]")
+
+if __name__ == "__main__":
+    monitor = IntegrityMonitor()
+    monitor.run() 

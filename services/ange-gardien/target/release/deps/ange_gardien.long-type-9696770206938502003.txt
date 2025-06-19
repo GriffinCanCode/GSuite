@@ -1,0 +1,1 @@
+DefaultableColumnInsertValue<ColumnInsertValue<security_alerts::columns::timestamp, &DateTime<Utc>>>

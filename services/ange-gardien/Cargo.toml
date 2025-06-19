@@ -1,0 +1,78 @@
+[package]
+name = "ange-gardien"
+version = "0.1.0"
+edition = "2021"
+authors = ["Griffin"]
+description = "A guardian system service for monitoring and protection"
+license = "MIT"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.36", features = ["full"] }
+
+# Logging and error handling
+log = "0.4"
+env_logger = "0.11"
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# CLI argument parsing
+clap = { version = "4.5", features = ["derive"] }
+
+# File system and paths
+directories = "5.0"
+notify = "6.1"
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+time = { version = "0.3", features = ["serde"] }
+
+# System information and monitoring
+sysinfo = { version = "0.29", features = ["serde"] }
+mach = "0.3"
+libc = "0.2"
+core-foundation = "0.9"
+core-foundation-sys = "0.8"
+num_cpus = "1.16"
+threadpool = "1.8"
+
+# Database
+diesel = { version = "2.1", features = ["sqlite", "r2d2", "chrono"] }
+
+# Network monitoring
+pcap = "1.1"
+pnet = { version = "0.34", features = ["std"] }
+trust-dns-resolver = "0.23"
+
+# Machine learning
+linfa = "0.7"
+linfa-clustering = "0.7"
+linfa-nn = "0.7"
+ndarray = { version = "0.15", features = ["serde"] }
+
+# Python integration
+pyo3 = { version = "0.19", features = ["auto-initialize"] }
+numpy = "0.19"
+
+# Security and encryption
+ring = "0.17"
+rustls = "0.22"
+base64 = "0.21"
+security-framework = "2.9"
+
+[lib]
+name = "ange_gardien"
+crate-type = ["cdylib", "rlib"]
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.10"
+criterion = "0.5"
+
+[[bench]]
+name = "monitoring_bench"
+harness = false

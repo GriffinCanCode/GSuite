@@ -1,0 +1,2 @@
+expression::grouped::Grouped<expression::operators::Lt<security_alerts::columns::timestamp, DateTime<Utc>>>
+DeleteStatement<security_alerts::table, diesel::query_builder::where_clause::NoWhereClause>

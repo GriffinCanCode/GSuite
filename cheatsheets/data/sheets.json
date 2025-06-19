@@ -1,0 +1,20 @@
+{
+  "sheets": [
+    {
+      "id": "bash-commands",
+      "name": "Bash Commands",
+      "category": "programming",
+      "format": "md",
+      "path": "./sheets/bash-cmd.md",
+      "tags": ["bash", "cli", "terminal"]
+    },
+    {
+      "id": "http-requests",
+      "name": "HTTP Request Methods",
+      "category": "web",
+      "format": "html",
+      "path": "./sheets/httpsrequests.html",
+      "tags": ["http", "web", "api"]
+    }
+  ]
+}

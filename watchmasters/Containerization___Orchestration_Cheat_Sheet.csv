@@ -1,0 +1,29 @@
+Category,Tool,Purpose
+Containerization,Docker,Standard container engine
+Containerization,Podman,Rootless Docker alternative
+Containerization,Buildah,Daemonless image builder
+Containerization,containerd,Low-level container runtime
+Image Building,Dockerfile,Image build instructions
+Image Building,BuildKit,Modern parallel builder
+Image Building,Kaniko,Daemonless image builder for Kubernetes
+Image Building,Jib,Java container image builder
+Orchestration,Kubernetes,Full-featured container orchestrator
+Orchestration,Docker Swarm,Simple container orchestrator
+Orchestration,Nomad,Lightweight orchestrator for many workloads
+Configuration,Helm,Kubernetes package manager
+Configuration,Kustomize,YAML configuration overlay tool
+Configuration,Skaffold,Dev tool for building and deploying apps
+Networking,Istio,Advanced service mesh
+Networking,Linkerd,Lightweight service mesh
+Networking,Cilium,eBPF-powered networking and security
+Observability,Prometheus,Metrics collection
+Observability,Grafana,Dashboard visualization
+Observability,Fluentd,Log collection
+Observability,Jaeger,Distributed tracing
+Security,Trivy,Container image scanner
+Security,Falco,Runtime threat detection
+Security,Anchore,Security policy scanner
+Security,OPA,Policy enforcement in Kubernetes
+CI/CD,ArgoCD,GitOps deployment manager
+CI/CD,Tekton,CI/CD pipeline tool
+CI/CD,Flux,GitOps-based continuous delivery

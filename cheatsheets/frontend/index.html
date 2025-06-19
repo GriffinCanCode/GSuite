@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Griffin's CheatSheets</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-dark.min.css">
+    <!-- Add Google font for code blocks -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap">
+    
+    <!-- Load marked.js early to ensure it's available -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script>
+        // Ensure marked is globally available
+        window.markedInstance = window.marked || marked;
+        
+        // Configure marked with enhanced settings
+        window.markedInstance.setOptions({
+            gfm: true, // GitHub Flavored Markdown
+            breaks: true, // Convert line breaks to <br>
+            pedantic: false,
+            sanitize: false, // Allow HTML in markdown
+            smartLists: true,
+            smartypants: true, // Fancy quotes, dashes, etc.
+            highlight: function(code, lang) {
+                // Will be overridden later once highlight.js is loaded
+                return code;
+            }
+        });
+        
+        // Setup for executable JS code blocks
+        window.executeMarkdownJS = function(code, container) {
+            try {
+                // Create a container for the script output
+                const outputDiv = document.createElement('div');
+                outputDiv.className = 'js-output';
+                container.appendChild(outputDiv);
+                
+                // Execute the code with a reference to the output container
+                const wrappedCode = `
+                    (function() {
+                        const DOM_NODE = document.currentScript.previousSibling;
+                        ${code}
+                    })();
+                `;
+                
+                const script = document.createElement('script');
+                script.textContent = wrappedCode;
+                container.appendChild(script);
+            } catch (err) {
+                console.error('Error executing JS in markdown:', err);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'js-error';
+                errorDiv.textContent = `Error: ${err.message}`;
+                container.appendChild(errorDiv);
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-book-open"></i>
+                <h1>Griffin's CheatSheets</h1>
+            </div>
+            
+            <!-- Search section with expanded capabilities -->
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="Search cheatsheets...">
+                        <button id="advanced-search-toggle" title="Advanced Search"><i class="fas fa-sliders-h"></i></button>
+                    </div>
+                </div>
+                
+                <!-- Advanced search options (hidden by default) -->
+                <div id="advanced-search" class="advanced-search">
+                    <div class="search-option">
+                        <label for="search-in-content">
+                            <input type="checkbox" id="search-in-content">
+                            Search in content
+                        </label>
+                    </div>
+                    <div class="search-option">
+                        <label for="case-sensitive">
+                            <input type="checkbox" id="case-sensitive">
+                            Case sensitive
+                        </label>
+                    </div>
+                    <div class="search-option">
+                        <label for="whole-word">
+                            <input type="checkbox" id="whole-word">
+                            Whole word
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Category filters -->
+            <div class="category-filters">
+                <div class="filter-title">Categories</div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="bash">Bash</button>
+                    <button class="filter-btn" data-filter="dev">Development</button>
+                    <button class="filter-btn" data-filter="sys">System</button>
+                    <button class="filter-btn" data-filter="net">Network</button>
+                    <button class="filter-btn" data-filter="favorites"><i class="fas fa-star"></i> Favorites</button>
+                </div>
+            </div>
+            
+            <!-- Tags filter section -->
+            <div class="tags-section">
+                <div class="section-header">
+                    <span>Tags</span>
+                    <button id="tags-toggle" class="section-toggle" title="Toggle Tags"><i class="fas fa-chevron-down"></i></button>
+                </div>
+                <div class="tags-filter">
+                    <!-- Tags will be populated dynamically -->
+                </div>
+            </div>
+            
+            <!-- Sheets list -->
+            <div class="sheets-list-container">
+                <div class="section-header">
+                    <span>Cheatsheets</span>
+                    <div class="list-controls">
+                        <button id="sort-btn" title="Sort"><i class="fas fa-sort-alpha-down"></i></button>
+                        <button id="view-grid-btn" title="Grid View"><i class="fas fa-th-large"></i></button>
+                        <button id="view-list-btn" title="List View" class="active"><i class="fas fa-list"></i></button>
+                    </div>
+                </div>
+                <div class="sheets-list" id="sheets-list">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Add sheet button -->
+            <div class="add-sheet">
+                <button id="add-sheet-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Cheatsheet</span>
+                </button>
+            </div>
+            
+            <!-- User account section -->
+            <div class="user-account">
+                <button id="login-btn" class="account-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </button>
+                <button id="register-btn" class="account-btn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
+                </button>
+                <div id="user-info" class="user-info" style="display: none;">
+                    <span id="username-display">User</span>
+                    <button id="logout-btn" class="account-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Header with controls -->
+            <div class="viewer-header">
+                <div class="sheet-title" id="current-sheet-title">Select a cheatsheet</div>
+                <div class="viewer-controls">
+                    <button id="full-screen-btn" title="Full Screen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button id="dark-mode-btn" title="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="settings-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Main content area -->
+            <div class="sheet-content" id="sheet-content">
+                <div class="welcome-screen">
+                    <div class="welcome-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h2>Welcome to CheatSheets Hub</h2>
+                    <p>Select a cheatsheet from the sidebar to get started</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Sheet Modal -->
+    <div class="modal" id="add-sheet-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Cheatsheet</h2>
+                <button class="close-btn" id="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-sheet-form">
+                    <div class="form-group">
+                        <label for="sheet-name">Cheatsheet Name</label>
+                        <input type="text" id="sheet-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sheet-category">Category</label>
+                        <select id="sheet-category" required>
+                            <option value="bash">Bash</option>
+                            <option value="dev">Development</option>
+                            <option value="sys">System</option>
+                            <option value="net">Network</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sheet-tags">Tags (comma separated)</label>
+                        <input type="text" id="sheet-tags" placeholder="e.g., linux, commands, reference">
+                    </div>
+                    <div class="form-group">
+                        <label for="sheet-file">Upload File</label>
+                        <input type="file" id="sheet-file" accept=".md,.txt,.pdf,.html,.csv,.json,.xml,.yml,.yaml,.ini,.conf">
+                        <small>Supported formats: PDF, HTML, MD, TXT, CSV, JSON, XML, YAML, INI, CONF</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Add Cheatsheet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Login Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login</h2>
+                <button class="close-btn" id="close-login-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Register Modal -->
+    <div class="modal" id="register-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Register</h2>
+                <button class="close-btn" id="close-register-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-confirm-password">Confirm Password</label>
+                        <input type="password" id="register-confirm-password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Register</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load libraries -->
+    <script>
+        // Module polyfill for Highlight.js - fixes "module is not defined" errors
+        if (typeof module === 'undefined') {
+            window.module = { exports: {} };
+            window.exports = module.exports;
+        }
+    </script>
+    
+    <!-- Load syntax highlighting libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/sql.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/xml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/ini.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/cpp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/csharp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    
+    <!-- Setup enhanced markdown rendering -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Once highlight.js is loaded, enhance the marked renderer
+            if (window.hljs && window.markedInstance) {
+                // Configure marked with highlight.js
+                window.markedInstance.setOptions({
+                    highlight: function(code, lang) {
+                        try {
+                            if (lang) {
+                                return window.hljs.highlight(code, {language: lang}).value;
+                            } else {
+                                return window.hljs.highlightAuto(code).value;
+                            }
+                        } catch (e) {
+                            console.warn('Failed to highlight:', e);
+                            return code;
+                        }
+                    }
+                });
+                
+                // Create a custom renderer for marked
+                const renderer = new window.markedInstance.Renderer();
+                
+                // Store the original code renderer
+                const originalCodeRenderer = renderer.code;
+                
+                // Override code renderer to handle executable JS blocks
+                renderer.code = function(code, language, isEscaped) {
+                    if (language === 'render' || language === 'render-js' || language === 'render-babel') {
+                        // For executable JS code blocks
+                        const codeHtml = originalCodeRenderer.call(this, code, language === 'render-babel' ? 'javascript' : 'javascript', isEscaped);
+                        return `<div class="executable-code-block">${codeHtml}<button class="run-js-btn">Run Code</button><div class="js-result"></div></div>`;
+                    }
+                    return originalCodeRenderer.call(this, code, language, isEscaped);
+                };
+                
+                // Override link renderer to add target="_blank" to external links
+                renderer.link = function(href, title, text) {
+                    const isExternal = href && href.startsWith('http');
+                    const attrs = isExternal ? 'target="_blank" rel="noopener noreferrer"' : '';
+                    return `<a href="${href}" ${title ? `title="${title}"` : ''} ${attrs}>${text}</a>`;
+                };
+                
+                // Override table renderer to make tables responsive
+                renderer.table = function(header, body) {
+                    return `<div class="table-responsive"><table class="md-table">${header}${body}</table></div>`;
+                };
+                
+                // Set the custom renderer
+                window.markedInstance.setOptions({ renderer });
+                
+                console.log('Enhanced markdown rendering setup complete');
+            } else {
+                console.warn('highlight.js or marked not available for enhanced setup');
+            }
+            
+            // Add event listener for running JS code blocks
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.classList.contains('run-js-btn')) {
+                    const codeBlock = e.target.closest('.executable-code-block');
+                    if (codeBlock) {
+                        const preElement = codeBlock.querySelector('pre');
+                        const codeElement = preElement ? preElement.querySelector('code') : null;
+                        const resultElement = codeBlock.querySelector('.js-result');
+                        
+                        if (codeElement && resultElement) {
+                            // Clear previous results
+                            resultElement.innerHTML = '';
+                            
+                            // Get the code content
+                            const code = codeElement.textContent || '';
+                            
+                            // Execute the code
+                            window.executeMarkdownJS(code, resultElement);
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    
+    <!-- Export marked instance for modules -->
+    <script>
+        // Ensure marked is available to modules via a global registry
+        window.markdownLibraries = {
+            marked: window.markedInstance,
+            executeJS: window.executeMarkdownJS
+        };
+    </script>
+    
+    <!-- API client - must be loaded before app.js -->
+    <script type="module" src="api.js"></script>
+    
+    <!-- Renderer modules -->
+    <script type="module" src="renderers/index.js"></script>
+    
+    <!-- App script (must be type="module" to support ES6 imports) -->
+    <script type="module" src="app.js"></script>
+    
+    <!-- Script to detect when everything is loaded -->
+    <script>
+        window.addEventListener('load', function() {
+            console.log('All scripts and resources have been loaded');
+            // Check if API client is loaded properly
+            if (window.CheatSheetsAPI) {
+                console.log('API client is loaded and available');
+            } else {
+                console.warn('API client is not available! Backend connection may not work properly.');
+            }
+            // Check if renderer functions are available globally as fallback
+            if (window.renderFunctions) {
+                console.log('Renderer functions available globally: ', 
+                    Object.keys(window.renderFunctions).join(', '));
+            }
+        });
+    </script>
+
+    <!-- Script to remove any debug elements -->
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            // Remove any debug containers that might be leftover
+            const debugElements = [
+                document.getElementById('debug-panel'),
+                document.getElementById('debug-container'),
+                document.querySelector('.debug-panel'),
+                document.querySelector('.debug-container')
+            ];
+            
+            debugElements.forEach(function(element) {
+                if (element && element.parentNode) {
+                    element.parentNode.removeChild(element);
+                    console.log('Removed debug element:', element.id || element.className);
+                }
+            });
+            
+            // Remove any debug-related styles
+            document.querySelectorAll('style').forEach(function(style) {
+                if (style.textContent.includes('.debug-panel') || 
+                    style.textContent.includes('.debug-container')) {
+                    style.parentNode.removeChild(style);
+                    console.log('Removed debug style element');
+                }
+            });
+            
+            // Remove debug mode class from body if present
+            if (document.body.classList.contains('debug-mode')) {
+                document.body.classList.remove('debug-mode');
+                console.log('Removed debug-mode class from body');
+            }
+        });
+    </script>
+
+    <!-- Initial setup -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize required functionality
+        setupThemeToggle();
+        
+        // Check for API connection with retry mechanism
+        const checkBackendConnection = () => {
+            console.log("Checking backend connection...");
+            
+            let retryCount = 0;
+            const maxRetries = 3;
+            
+            const tryConnect = () => {
+                fetch('http://localhost:5000/api/health')
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('Connected to backend API successfully!');
+                            // Load cheatsheets only after confirming backend connection
+                            loadCheatsheets();
+                        } else {
+                            handleConnectionError(`Backend API responded with error: ${response.status}`, retryCount < maxRetries);
+                        }
+                    })
+                    .catch(error => {
+                        handleConnectionError(`Failed to connect to backend API: ${error.message}`, retryCount < maxRetries);
+                    });
+            };
+            
+            const handleConnectionError = (errorMsg, shouldRetry) => {
+                console.error(errorMsg);
+                if (shouldRetry) {
+                    retryCount++;
+                    console.log(`Retrying connection (${retryCount}/${maxRetries})...`);
+                    setTimeout(tryConnect, 2000); // Wait 2 seconds before retrying
+                } else {
+                    console.warn('Using fallback local data due to backend connection failure');
+                    alert('Could not connect to backend server. Please make sure it is running! Using local data instead.');
+                    // Load cheatsheets with fallback to local data
+                    loadCheatsheets();
+                }
+            };
+            
+            tryConnect();
+        };
+        
+        checkBackendConnection();
+        setupEventListeners();
+    });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+
+import rumps
+import os
+import sys
+import subprocess
+
+class LockScreenApp(rumps.App):
+    def __init__(self):
+        super(LockScreenApp, self).__init__("🔒")
+        
+    @rumps.clicked("Lock Screen")
+    def lock(self, _):
+        # Use a more reliable method to lock screen
+        try:
+            # First try using Quartz to lock screen (most reliable)
+            subprocess.run([
+                "osascript",
+                "-e", 'tell application "System Events" to keystroke "q" using {command down, control down}'
+            ])
+        except Exception as e:
+            try:
+                # Fallback to pmset if Quartz fails
+                subprocess.run(["pmset", "displaysleepnow"])
+            except Exception as e:
+                print(f"Error locking screen: {e}")
+        
+    @rumps.clicked("Quit")
+    def quit(self, _):
+        rumps.quit_application()
+
+def uninstall_service():
+    """Uninstall lock screen button service."""
+    try:
+        # Unload the service
+        plist_path = os.path.expanduser("~/Library/LaunchAgents/com.user.lockscreen.plist")
+        if os.path.exists(plist_path):
+            os.system(f'launchctl unload {plist_path}')
+            os.remove(plist_path)
+        
+        # Remove symbolic link
+        bin_path = "/usr/local/bin/lockscreen"
+        if os.path.exists(bin_path):
+            os.system(f'sudo rm -f {bin_path}')
+        
+        print("Lock screen button service uninstalled successfully!")
+        return True
+    except Exception as e:
+        print(f"Error uninstalling service: {e}")
+        return False
+
+def setup_service():
+    """Set up lock screen button service."""
+    try:
+        # Get the real path of the script
+        script_path = os.path.realpath(__file__)
+        
+        # Create /usr/local/bin if it doesn't exist
+        bin_dir = "/usr/local/bin"
+        if not os.path.exists(bin_dir):
+            os.system(f'sudo mkdir -p {bin_dir}')
+        
+        # Create symbolic link with sudo
+        os.system(f'sudo ln -sf {script_path} {bin_dir}/lockscreen')
+        os.system(f'sudo chmod +x {bin_dir}/lockscreen')
+        
+        # Setup LaunchAgent directory
+        launch_dir = os.path.expanduser("~/Library/LaunchAgents")
+        os.makedirs(launch_dir, exist_ok=True)
+        
+        # Create LaunchAgent plist
+        plist_path = os.path.join(launch_dir, "com.user.lockscreen.plist")
+        plist_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.lockscreen</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/lockscreen</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+</dict>
+</plist>'''
+        
+        with open(plist_path, 'w') as f:
+            f.write(plist_content)
+        
+        # Set proper permissions
+        os.chmod(plist_path, 0o644)
+        
+        # Load the service
+        os.system(f'launchctl unload {plist_path} 2>/dev/null')
+        os.system(f'launchctl load -w {plist_path}')
+        
+        print("Lock screen button service installed and started successfully!")
+        return True
+        
+    except Exception as e:
+        print(f"Error setting up service: {e}")
+        return False
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--setup":
+            if setup_service():
+                print("Service setup completed successfully!")
+            else:
+                print("Service setup failed!")
+            sys.exit(0)
+        elif sys.argv[1] == "--uninstall":
+            if uninstall_service():
+                print("Service uninstalled successfully!")
+            else:
+                print("Service uninstall failed!")
+            sys.exit(0)
+    
+    app = LockScreenApp()
+    app.run() 

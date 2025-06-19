@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resource-manager"
+version = "0.1.0"
+description = "Resource Manager optimized for M4 Max"
+requires-python = ">=3.8"
+
+[tool.pytest.ini_options]
+addopts = "-v --cov=internal --cov-report=term-missing"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+asyncio_mode = "strict" 

@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+
+import os
+import psutil
+import time
+from collections import defaultdict
+from rich.console import Console
+from rich.layout import Layout
+from rich.panel import Panel
+from rich.table import Table
+from rich import box
+
+class DataFlowMonitor:
+    def __init__(self):
+        self.console = Console()
+        self.connections = defaultdict(list)
+        self.file_access = defaultdict(list)
+        self.network_usage = defaultdict(float)
+        self.layout = Layout()
+        self.has_root = os.geteuid() == 0
+        self.server_mode = False
+        
+        if not self.has_root:
+            self.console.print("[yellow]Warning: Some features require root privileges[/yellow]")
+
+    def create_network_table(self):
+        table = Table(box=box.ROUNDED, title="Network Connections", show_header=True)
+        table.add_column("Process", style="cyan")
+        table.add_column("Remote Address", style="green")
+        table.add_column("Status", style="yellow")
+        
+        for proc_name, addresses in self.connections.items():
+            for addr in addresses:
+                table.add_row(proc_name, addr, "ESTABLISHED")
+        return table
+
+    def create_file_table(self):
+        table = Table(box=box.ROUNDED, title="File Operations", show_header=True)
+        table.add_column("Process", style="cyan")
+        table.add_column("File Path", style="green")
+        
+        for proc_name, files in self.file_access.items():
+            for file_path in files[:5]:  # Limit to 5 files per process
+                table.add_row(proc_name, str(file_path))
+        return table
+
+    def create_network_usage_panel(self):
+        content = "\n".join(
+            f"{interface}: {self.format_bytes(usage)}/s"
+            for interface, usage in self.network_usage.items()
+        )
+        return Panel(content, title="Network Usage", border_style="blue")
+
+    def format_bytes(self, bytes):
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if bytes < 1024:
+                return f"{bytes:.2f} {unit}"
+            bytes /= 1024
+        return f"{bytes:.2f} TB"
+
+    def monitor_network_connections(self):
+        self.connections.clear()
+        try:
+            connections = psutil.net_connections()
+            for conn in connections:
+                if conn.status == 'ESTABLISHED' and conn.pid:
+                    try:
+                        proc = psutil.Process(conn.pid)
+                        remote_addr = f"{conn.raddr.ip}:{conn.raddr.port}"
+                        self.connections[proc.name()].append(remote_addr)
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        continue
+        except (psutil.AccessDenied, PermissionError):
+            if self.has_root:
+                self.console.print("[red]Error accessing network connections[/red]")
+
+    def monitor_file_operations(self):
+        self.file_access.clear()
+        try:
+            for proc in psutil.process_iter(['pid', 'name', 'open_files']):
+                try:
+                    files = proc.open_files()
+                    if files:
+                        self.file_access[proc.name()] = [f.path for f in files]
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+        except (psutil.AccessDenied, PermissionError):
+            if self.has_root:
+                self.console.print("[red]Error accessing file operations[/red]")
+
+    def monitor_network_usage(self):
+        net_io = psutil.net_io_counters(pernic=True)
+        for interface, stats in net_io.items():
+            self.network_usage[interface] = stats.bytes_sent + stats.bytes_recv
+
+    def update_display(self):
+        self.layout.split(
+            Layout(name="header", size=3),
+            Layout(name="main"),
+            Layout(name="footer", size=3)
+        )
+        
+        self.layout["main"].split_row(
+            Layout(name="left"),
+            Layout(name="right")
+        )
+        
+        self.layout["left"].split(
+            Layout(name="network"),
+            Layout(name="files")
+        )
+        
+        self.layout["header"].update(
+            Panel(
+                "WatchMaster Data Flow Monitor",
+                style="bold blue",
+                border_style="blue"
+            )
+        )
+        
+        self.layout["network"].update(self.create_network_table())
+        self.layout["files"].update(self.create_file_table())
+        self.layout["right"].update(self.create_network_usage_panel())
+        
+        self.layout["footer"].update(
+            Panel(
+                "Press Ctrl+C to exit",
+                style="dim",
+                border_style="dim"
+            )
+        )
+        
+        if self.server_mode and not self.has_root:
+            self.layout["main"].update(Panel(
+                "Server mode requires root privileges",
+                style="red"
+            ))
+        
+        return self.layout
+
+    def run(self):
+        """Main monitoring loop"""
+        try:
+            while True:
+                self.monitor_network_connections()
+                self.monitor_file_operations()
+                self.monitor_network_usage()
+                layout = self.update_display()
+                self.console.clear()
+                self.console.print(layout)
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.console.print("\n[yellow]Monitoring stopped by user[/yellow]")
+
+if __name__ == "__main__":
+    import sys
+    monitor = DataFlowMonitor()
+    monitor.server_mode = "--server" in sys.argv
+    monitor.run()
