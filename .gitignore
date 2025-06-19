@@ -154,3 +154,6 @@ Cargo.lock
 services/backanim/logs/
 services/backanim/resources/
 services/ange-gardien/target/
+
+# Clipboard history (contains sensitive data)
+clippies/board.json
